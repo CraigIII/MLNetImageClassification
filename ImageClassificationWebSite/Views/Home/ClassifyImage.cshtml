@@ -1,0 +1,46 @@
+﻿<div class="container">
+    <div class="form-group">
+        <label class="form-label">Picture:</label>
+        <img id="imgPreview" src="~/images/NoImage.jpg" class="form-control" style="width:640px;height:480px" />
+        <input type="file" id="file" class="form-control" />
+    </div>
+    <div class="form-group">
+        <button id="classify" type="button" class="btn btn-primary">分類</button>
+    </div>
+</div>
+@section Scripts
+{
+    <script>
+        var file;
+        $("#file").on("change", function () { 
+            file = this.files[0];
+            var allowFileType = "image.*";
+            if (file.type.match(allowFileType)) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $("#imgPreview").attr('src', e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+            else {
+                alert("不支援的檔案類型!");
+                $('#btnAnalyze').prop('disabled', true);
+            }
+        });
+        $("#classify").on("click", function () { 
+            var formData = new FormData();
+            formData.append("ImageFile", file);
+            $.ajax({
+                url: "https://localhost:7094/Home/ClassifyImage",
+                type: "POST",
+                processData: false,
+                contentType: false,
+                data: formData
+            }).done(function (data, textStatus, jqXHR) {
+                alert(`內容:${data["label"]}, 信心指數:${(data["score"]*100).toFixed(2)}%`);
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                alert(errorThrown);
+            });
+        });
+    </script>
+}
